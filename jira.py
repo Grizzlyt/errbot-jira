@@ -6,12 +6,13 @@ import requests
 import logging
 import json
 import re
+import os
 
 log = logging.getLogger(name='errbot.plugins.Jira')
 
-CONFIG_TEMPLATE = {'API_URL': "http://jira.example.com",
-                   'USERNAME': 'errbot',
-                   'PASSWORD': 'password',
+CONFIG_TEMPLATE = {'API_URL': os.environ['JIRA_URL'],
+                   'USERNAME': os.environ['JIRA_USERNAME'],
+                   'PASSWORD': os.environ['JIRA_PASSWORD'],
                    'OAUTH_ACCESS_TOKEN': None,
                    'OAUTH_ACCESS_TOKEN_SECRET': None,
                    'OAUTH_CONSUMER_KEY': None,
@@ -34,6 +35,7 @@ class Jira(BotPlugin):
         else:
             config = CONFIG_TEMPLATE
         super(Jira, self).configure(config)
+        activate()
 
     def check_configuration(self, configuration):
         # TODO(alex) do some validation here!
