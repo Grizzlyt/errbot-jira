@@ -138,7 +138,7 @@ class Jira(BotPlugin):
                   groupchat_nick_reply=True)
         return ''
 
-   def _get_data(json_object, search, name, key):
+    def _get_data(json_object, search, name, key):
         for dict in json_object:
             if dict[search] == name:
                 return dict[key]
