@@ -35,7 +35,6 @@ class Jira(BotPlugin):
         else:
             config = CONFIG_TEMPLATE
         super(Jira, self).configure(config)
-        activate()
 
     def check_configuration(self, configuration):
         # TODO(alex) do some validation here!
