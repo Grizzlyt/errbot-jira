@@ -241,4 +241,4 @@ class Jira(BotPlugin):
             for item in agile["issues"]:
                 if status == item.get("fields")["status"]["name"] and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
                     yield item.get("key"), (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']]
-         yield "Done"
+        yield "Done"
