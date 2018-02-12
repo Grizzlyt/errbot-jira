@@ -194,7 +194,7 @@ class Jira(BotPlugin):
         else:
             status = args[0]
         r = requests.get(self.config['API_URL'] + "/rest/greenhopper/1.0/rapidview", auth=(self.config['USERNAME'], self.config['PASSWORD']))
-        if r.status_code != "200":
+        if r.status_code != 200:
             yield "Bot not able to get all boards"
             return ''
         allboards = r.json()
@@ -205,13 +205,13 @@ class Jira(BotPlugin):
             return ''
         if self.get_data(allboards["views"], "name", board, "sprintSupportEnabled") != False:
             r1 = requests.get(self.config['API_URL'] + "/rest/greenhopper/latest/sprintquery/" + str(rapidview_id), auth=(self.config['USERNAME'], self.config['PASSWORD']))
-            if r1.status_code != "200":
+            if r1.status_code != 200:
                 yield "Bot not able to get sprint data"
                 return ''
             sprint = r1.json()
             sprint_id = self.get_data(sprint["sprints"], "state", "ACTIVE", "id")
             r2 = requests.get(self.config['API_URL'] + "/rest/greenhopper/latest/rapid/charts/sprintreport?rapidViewId=" + str(rapidview_id) + "&sprintId=" + str(sprint_id), auth=(self.config['USERNAME'], self.config['PASSWORD']))
-            if r2.status_code != "200":
+            if r2.status_code != 200:
                 yield "Bot not able to get board details"
                 return ''
             for item in r2.json()["contents"]["completedIssues"] and r2.json()["contents"]["issuesNotCompletedInCurrentSprint"]:
@@ -221,7 +221,7 @@ class Jira(BotPlugin):
                     yield item.get("key"), "None"
         else:
             r1 = requests.get(self.config['API_URL'] + "/rest/agile/1.0/board/" + str(rapidview_id) + "/issue?maxResults=100", auth=(self.config['USERNAME'], self.config['PASSWORD']))
-            if r1.status_code != "200":
+            if r1.status_code != 200:
                 yield "Bot not able to get agile data"
                 return ''
             agile = r1.json()
