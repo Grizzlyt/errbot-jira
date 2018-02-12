@@ -138,7 +138,7 @@ class Jira(BotPlugin):
                   groupchat_nick_reply=True)
         return ''
 
-    def _get_data(json_object, search, name, key):
+    def get_data(self, json_object, search, name, key):
         for dict in json_object:
             if dict[search] == name:
                 return dict[key]
@@ -184,22 +184,59 @@ class Jira(BotPlugin):
         if self.config:
             """not implemented yet"""
 
-    @botcmd(split_args_with='""')
-    def jira_repos(self, board, status):
+    @botcmd(split_args_with=';')
+    def jira_repos(self, msg, args):
+        """Find issues on specific board and specific status. Delimeter is ";". Exampe !jira_repos CI/CD Board; QA Verified"""
+        yield "Be patient, it could take some time"
+        board = args.pop(0)
+        if args[0].startswith(" "):
+            status = args[0][1:]
+        else:
+            status = args[0]
         r = requests.get(self.config['API_URL'] + "/rest/greenhopper/1.0/rapidview", auth=(self.config['USERNAME'], self.config['PASSWORD']))
         allboards = r.json()
-        rapidview_id = _get_data (allboards["views"], "name", board, "id")
-        if _get_data (allboards["views"], "name", board, "sprintSupportEnabled") != False:
+        rapidview_id = self.get_data(allboards["views"], "name", board, "id")
+        if rapidview_id == None:
+            exit_code = board + " not found or Bot do not have permissions to that board."
+            yield exit_code
+            return ''
+        if self.get_data(allboards["views"], "name", board, "sprintSupportEnabled") != False:
             r1 = requests.get(self.config['API_URL'] + "/rest/greenhopper/latest/sprintquery/" + str(rapidview_id), auth=(self.config['USERNAME'], self.config['PASSWORD']))
             sprint = r1.json()
-            sprint_id = _get_data (sprint["sprints"], "state", "ACTIVE", "id")
+            sprint_id = self.get_data(sprint["sprints"], "state", "ACTIVE", "id")
             r2 = requests.get(self.config['API_URL'] + "/rest/greenhopper/latest/rapid/charts/sprintreport?rapidViewId=" + str(rapidview_id) + "&sprintId=" + str(sprint_id), auth=(self.config['USERNAME'], self.config['PASSWORD']))
             for item in r2.json()["contents"]["completedIssues"] and r2.json()["contents"]["issuesNotCompletedInCurrentSprint"]:
                 if status == item.get("statusName") and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
-                    print(item.get("key"), "-", (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']])
+                    yield item.get("key"), (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']]
+                else:
+                    yield item.get("key"), "None"
         else:
             r1 = requests.get(self.config['API_URL'] + "/rest/agile/1.0/board/" + str(rapidview_id) + "/issue?maxResults=100", auth=(self.config['USERNAME'], self.config['PASSWORD']))
             agile = r1.json()
+            if status.lower() == "blocked/needs info":
+                status = "Blocked"
+                yield "Blocked"
+            elif status.lower() == "ready for development":
+                status = "Ready for Development"
+                yield "Ready for Development"
+            elif status.lower() == "dev in progress":
+                status = "In Progress"
+                yield "In Progress"
+            elif status.lower() == "qa verified":
+                status = "QA Verified"
+                yield "QA Verified"
+            elif status.lower() == "resolved":
+                status = "Resolved"
+                yield "Resolved"
+            elif status.lower() == "cd candidate":
+                status = "Ready for Scheduling"
+                yield "Ready for Scheduling"
+            else:
+                yield "Issue status not found"
+                return ''
             for item in agile["issues"]:
-                if ticket_status == item.get("fields")["status"]["name"] and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
-                    print(item.get("key"), "-", (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']])
+                if status == item.get("fields")["status"]["name"] and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
+                    yield item.get("key"), (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']]
+                else:
+                    yield item.get("key"), "None"
+        yield "Done"
