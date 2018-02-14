@@ -187,6 +187,9 @@ class Jira(BotPlugin):
     @botcmd(split_args_with=';')
     def jira_repos(self, msg, args):
         """Find issues on specific board and specific status. Delimeter is ";". Exampe !jira_repos CI/CD Board; QA Verified"""
+        if len(args) != 2:
+            yield "Check if you provide 2 agruments with ';' as a delimeter"
+            return ''
         yield "Be patient, it could take some time"
         board = args.pop(0)
         if args[0].startswith(" "):
@@ -216,7 +219,10 @@ class Jira(BotPlugin):
                 return ''
             for item in r2.json()["contents"]["completedIssues"] and r2.json()["contents"]["issuesNotCompletedInCurrentSprint"]:
                 if status == item.get("statusName") and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
-                    yield item.get("key"), (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']]
+                    found = 1
+                    self.send_card(title=item.get("key"),
+                        body=(requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']],
+                        in_reply_to=msg)
         else:
             r1 = requests.get(self.config['API_URL'] + "/rest/agile/1.0/board/" + str(rapidview_id) + "/issue?maxResults=100", auth=(self.config['USERNAME'], self.config['PASSWORD']))
             if r1.status_code != 200:
@@ -240,5 +246,16 @@ class Jira(BotPlugin):
                 return ''
             for item in agile["issues"]:
                 if status == item.get("fields")["status"]["name"] and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
-                    yield item.get("key"), (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']]
-        yield "Done"
+                    found = 1
+                    self.send_card(title=item.get("key"),
+                        body=(requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']],
+                        in_reply_to=msg)
+        try:
+            found
+            self.send_card(title='Done',
+            color='green',
+            in_reply_to=msg)
+        except NameError:
+            self.send_card(title='Tickets with repos not found',
+            color='red',
+            in_reply_to=msg)
