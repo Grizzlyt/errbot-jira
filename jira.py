@@ -17,7 +17,7 @@ CONFIG_TEMPLATE = {'API_URL': os.environ['JIRA_URL'],
                    'OAUTH_ACCESS_TOKEN_SECRET': None,
                    'OAUTH_CONSUMER_KEY': None,
                    'OAUTH_KEY_CERT_FILE': None,
-                   'FIELD_CHECK': "customfield_900008"}
+                   'FIELD_CHECK': os.environ['JIRA_FIELD']}
 
 try:
     from jira import JIRA, JIRAError
