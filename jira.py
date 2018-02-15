@@ -17,7 +17,7 @@ CONFIG_TEMPLATE = {'API_URL': os.environ['JIRA_URL'],
                    'OAUTH_ACCESS_TOKEN_SECRET': None,
                    'OAUTH_CONSUMER_KEY': None,
                    'OAUTH_KEY_CERT_FILE': None,
-                   'FIELD_CHECK': os.environ['JIRA_FIELD']}
+                   'FIELD_CHECK': "customfield_901103"}
 
 try:
     from jira import JIRA, JIRAError
@@ -219,9 +219,12 @@ class Jira(BotPlugin):
                 return ''
             for item in r2.json()["contents"]["completedIssues"] and r2.json()["contents"]["issuesNotCompletedInCurrentSprint"]:
                 if status == item.get("statusName") and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
-                    found = 1
+                    links = ""
+                    a = (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']]
+                    for x in range(len(a)):
+                        links += a[x] + "  "
                     self.send_card(title=item.get("key"),
-                        body=(requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']],
+                        body=links,
                         in_reply_to=msg)
         else:
             r1 = requests.get(self.config['API_URL'] + "/rest/agile/1.0/board/" + str(rapidview_id) + "/issue?maxResults=100", auth=(self.config['USERNAME'], self.config['PASSWORD']))
@@ -246,12 +249,15 @@ class Jira(BotPlugin):
                 return ''
             for item in agile["issues"]:
                 if status == item.get("fields")["status"]["name"] and (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']] != None:
-                    found = 1
+                    links = ""
+                    a = (requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']]
+                    for x in range(len(a)):
+                        links += a[x] + "  "
                     self.send_card(title=item.get("key"),
-                        body=(requests.get(self.config['API_URL'] + "/rest/api/2/issue/" + item.get("key") + "?expand", auth=(self.config['USERNAME'], self.config['PASSWORD']))).json()["fields"][self.config['FIELD_CHECK']],
+                        body=links,
                         in_reply_to=msg)
         try:
-            found
+            links
             self.send_card(title='Done',
             color='green',
             in_reply_to=msg)
