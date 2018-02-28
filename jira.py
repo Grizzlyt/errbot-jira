@@ -244,6 +244,10 @@ class Jira(BotPlugin):
                 status = "Resolved"
             elif status.lower() == "cd candidate":
                 status = "Ready for Scheduling"
+            elif status.lower() == "ready for qa":
+                status = "Ready For QA"
+            elif status.lower() == "released to stage":
+                status = "Released To Stage"
             else:
                 yield "Issue status not found"
                 return ''

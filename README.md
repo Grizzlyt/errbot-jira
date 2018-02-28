@@ -23,7 +23,7 @@ Requirements
 
 Installation
 ----
-
-    /repos install https://github.com/alexanderfahlke/err-jira.git
-    /plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password',  'PROJECTS': ['FOO', 'BAR']}
+    plugin will try to find API_URL, USERNAME and PASSWORD as an env.variables JIRA_URL, JIRA_USERNAME, JIRA_PASSWORD
+    /repos install https://github.com/Grizzlyt/errbot-jira.git
+    /plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password', 'PROJECTS': ['FOO', 'BAR']}
     /plugin activate Jira
