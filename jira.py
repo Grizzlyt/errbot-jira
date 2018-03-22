@@ -234,20 +234,22 @@ class Jira(BotPlugin):
             agile = r1.json()
             if status.lower() == "blocked/needs info":
                 status = "Blocked"
+            elif status.lower() == "cd candidate":
+                status = "Ready for Scheduling"
             elif status.lower() == "ready for development":
                 status = "Ready for Development"
             elif status.lower() == "dev in progress":
                 status = "In Progress"
-            elif status.lower() == "qa verified":
-                status = "QA Verified"
             elif status.lower() == "resolved":
                 status = "Resolved"
-            elif status.lower() == "cd candidate":
-                status = "Ready for Scheduling"
             elif status.lower() == "ready for qa":
                 status = "Ready For QA"
+            elif status.lower() == "qa verified":
+                status = "QA Verified"
             elif status.lower() == "released to stage":
-                status = "Released To Stage"
+                status = "Released To STAGE"
+            elif status.lower() == "closed":
+                status = "Closed"
             else:
                 yield "Issue status not found"
                 return ''
